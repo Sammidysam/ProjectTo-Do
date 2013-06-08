@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=ProjectTo-Do
+Comment=Starts the ProjectTo-Do Application
+Exec=python /home/four04/git/ProjectTo-Do/src/todo.py
+Icon=/home/four04/git/ProjectTo-Do/img/icon.png
