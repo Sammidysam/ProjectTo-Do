@@ -30,7 +30,7 @@ def writeJson(data, file):
 # projecthub is where all the projects are
 # blacklist is an array of folders you don't want included
 defaultJson = {'projecthub': getHome() + os.sep + 'Documents' + os.sep + 'Workspace',
-				'blacklist': ['.metadata', 'secretproject']}
+				'blacklist': ['.metadata']}
 
 # parses some json text that is an argument
 # identifier tells what item you want to retrieve
