@@ -1,10 +1,16 @@
 #!/usr/bin/python
 
+# for running via Sublime
+SUBLIME = False
+# turn to False for release
+if SUBLIME:
+	from os import chdir
+	chdir('..')
+
 # for graphics
 import pygtk
 pygtk.require('2.0')
 import gtk
-import pango
 
 # for manipulating files
 import fileutils
@@ -14,9 +20,29 @@ class ToDo:
 	# default selected to-do list
 	selected = 0
 
-	# called when cancel button is clicked
-	def cancelCall(self, widget, data=None):
+	# current mode: preferences (0) or gui (1)
+	mode = 0
+
+	# called when window quits
+	def quit(self, widget, event, data=None):
+		# loop through incomplete to-do items
+		# then, run the activate method on the entry boxes
+		# this will update the JSON
+		# so that your changes are saved when closing
+		if self.mode != 0:
+			if os.path.isfile(self.getToDoList()):
+				for x in range(0, len(self.incomplete.get_children())):
+					for y in range(0, len(self.incomplete.get_children()[x].get_children())):
+						if isinstance(self.incomplete.get_children()[x].get_children()[y], gtk.Entry):
+							self.incomplete.get_children()[x].get_children()[y].activate()
+
+		# quit the program
 		gtk.main_quit()
+		return False
+
+	# returns the current to-do list being processed
+	def getToDoList(self):
+		return self.currentList
 
 	# called when the OK button is clicked
 	def okCall(self, widget, data=None):
@@ -67,121 +93,193 @@ class ToDo:
 		self.helpWindow.add(self.helpvbox)
 		self.helpWindow.show()
 
-	# rebuild the to-do view
-	def rebuildToDo(self):
-		# destroy current scroll box
-		self.scrollbox.destroy()
-
-		# add incomplete label
-		incompleteLabel = gtk.Label("<b>Incomplete</b>")
-		incompleteLabel.set_use_markup(gtk.TRUE)
-		incompleteLabel.show()
-		self.scrollbox.add(incompleteLabel)
-
-		# rebuild to-do list viewer
-		incomplete = fileutils.parseJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json', 'incomplete')
-		done = fileutils.parseJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json', 'complete')
-		# create incomplete check boxes
-		for x in range(0, len(incomplete)):
-			item = gtk.HBox(False, 10)
-			check = gtk.CheckButton(None)
-			check.connect("toggled", self.finished, incomplete[x])
-			check.show()
-			item.pack_start(check, False, False, 0)
-			checkentry = gtk.Entry(0)
-			checkentry.select_region(0, len(checkentry.get_text()))
-			checkentry.set_text(incomplete[x])
-			checkentry.connect("activate", self.updateJson, checkentry, False, incomplete[x])
-			checkentry.show()
-			item.pack_start(checkentry, True, True, 0)
-			item.show()
-			self.scrollbox.add(item)
-	
-		# only show the complete label and items if there are complete items
-		if len(fileutils.getJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')['complete']) > 0:
-			# add label
-			completeLabel = gtk.Label("<b>Complete</b>")
-			completeLabel.set_use_markup(gtk.TRUE)
-			completeLabel.show()
-			self.scrollbox.add(completeLabel)
-
-			# create complete check boxes
-			for x in range(0, len(done)):
-				check = gtk.CheckButton(done[x])
-				check.set_active(gtk.TRUE)
-				check.connect("toggled", self.toggleChecked, None)
-				check.show()
-				self.scrollbox.add(check)
-
-		# re-show scroll box
-		self.scrollbox.show()
-		self.scroll.add_with_viewport(self.scrollbox)
-		self.scroll.show()
-
 	# called when the project dropdown is used
 	def switchProject(self, combobox):
 		self.selected = combobox.get_active()
+		self.currentList = fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json'
 		self.window.set_title("To-Do Lists - " + self.projects[combobox.get_active()])
-		if os.path.isfile(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json'):
+		if os.path.isfile(self.getToDoList()):
+			# show and hide necessary components
 			self.createItem.show()
 			self.removeItem.show()
 			self.notFound.hide()
 			self.createButton.hide()
-			self.rebuildToDo()
+
+			# rebuild scrollbox
+			# get incomplete and complete lists
+			incomplete = fileutils.parseJson(self.getToDoList(), 'incomplete')
+			done = fileutils.parseJson(self.getToDoList(), 'complete')
+
+			# remove old items
+			for x in range(0, len(self.incomplete.get_children())):
+				self.incomplete.remove(self.incomplete.get_children()[0])
+
+			for x in range(0, len(self.complete.get_children())):
+				self.complete.remove(self.complete.get_children()[0])
+
+			# add new items
+			for x in range(0, len(fileutils.parseJson(self.getToDoList(), 'incomplete'))):
+				item = gtk.HBox(False, 10)
+
+				# declare items
+				check = gtk.CheckButton(None)
+				checkentry = gtk.Entry(0)
+
+				# adjust items
+				check.connect("toggled", self.finished, incomplete[x], checkentry, item)
+				check.show()
+				item.pack_start(check, False, False, 0)
+				checkentry.select_region(0, len(checkentry.get_text()))
+				checkentry.set_text(incomplete[x])
+				checkentry.connect("activate", self.updateJson, checkentry, incomplete[x])
+				checkentry.show()
+				item.pack_start(checkentry, True, True, 0)
+				item.show()
+				self.incomplete.add(item)
+
+			# show that there are no to-do list items if there are none
+			# hide otherwise
+			if len(self.incomplete.get_children()) == 0:
+				self.noneLabel.show()
+			else:
+				self.noneLabel.hide()
+
+			for x in range(0, len(fileutils.parseJson(self.getToDoList(), 'complete'))):
+				check = gtk.CheckButton(done[x])
+				check.set_active(gtk.TRUE)
+				check.connect("toggled", lambda w, d: w.set_active(gtk.TRUE), None)
+				check.show()
+				self.complete.add(check)
+
+			# hide label if there are no complete items
+			# show it otherwise
+			if len(self.complete.get_children()) == 0:
+				self.completeLabel.hide()
+			else:
+				self.completeLabel.show()
+
+			# show scrolled window
+			self.scroll.show()
 		else:
+			# show and hide necessary components
 			self.createItem.hide()
 			self.removeItem.hide()
 			self.scroll.hide()
 			self.notFound.show()
 			self.createButton.show()
 
-	# create a todo list for the specified item in the list
+	# create a to-do list for the specified item in the list
 	def createToDo(self, widget, data=None):
+		# create empty to-do list
 		json = {'complete': [], 'incomplete': [], 'archive': []}
-		fileutils.writeJson(json, fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
+		fileutils.writeJson(json, self.getToDoList())
+
+		# hide and show necessary components
+		self.createItem.show()
+		self.removeItem.show()
+		self.notFound.hide()
+		self.createButton.hide()
+
+		# remove old gui
+		# if not done, the old to-do list's contents would appear
+		for x in range(0, len(self.incomplete.get_children())):
+			self.incomplete.remove(self.incomplete.get_children()[0])
+
+		for x in range(0, len(self.complete.get_children())):
+			self.complete.remove(self.complete.get_children()[0])
+
+		# show gui
+		self.scroll.show()
 
 	# switch item from unfinished to finished
 	def finished(self, widget, *data):
-		json = fileutils.getJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
-		json['incomplete'].remove(data[0])
-		json['complete'].append(data[0])
-		fileutils.writeJson(json, fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
-		self.rebuildToDo()
-	
-	# keep checkbox active
-	def toggleChecked(self, widget, data=None):
-		widget.set_active(gtk.TRUE)
+		# data[0] is the text when initialized
+		# data[1] is the entry box next to the check box
+		# data[2] is the hbox the check and entry boxes are in
+		json = fileutils.getJson(self.getToDoList())
+		# checks if the entry text does not equal the initial text
+		if data[1].get_text() != data[0]:
+			json['incomplete'].remove(data[0])
+			json['complete'].append(data[1].get_text())
+		else:
+			json['incomplete'].remove(data[1].get_text())
+			json['complete'].append(data[1].get_text())
+
+		# remove hbox from incomplete
+		self.incomplete.remove(data[2])
+
+		# show noneLabel if no items on to-do list
+		if len(self.incomplete.get_children()) == 0:
+			self.noneLabel.show()
+
+		# create check box in complete
+		check = gtk.CheckButton(data[1].get_text())
+		check.set_active(gtk.TRUE)
+		check.connect("toggled", lambda w, d: w.set_active(gtk.TRUE), None)
+		check.show()
+		self.complete.add(check)
+
+		# show complete label
+		self.completeLabel.show()
+
+		fileutils.writeJson(json, self.getToDoList())
 
 	# add new item to list
 	def newItem(self, widget, data=None):
-		json = fileutils.getJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
+		# add new item to to-do list file
+		json = fileutils.getJson(self.getToDoList())
 		json['incomplete'].append('New Item')
-		fileutils.writeJson(json, fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
-		self.rebuildToDo()
+		fileutils.writeJson(json, self.getToDoList())
+
+		# add new item to gui
+		item = gtk.HBox(False, 10)
+
+		# declare items
+		check = gtk.CheckButton(None)
+		checkentry = gtk.Entry(0)
+
+		# adjust items
+		check.connect("toggled", self.finished, "New Item", checkentry, item)
+		check.show()
+		item.pack_start(check, False, False, 0)
+		checkentry.select_region(0, len(checkentry.get_text()))
+		checkentry.set_text("New Item")
+		checkentry.connect("activate", self.updateJson, checkentry, "New Item")
+		checkentry.show()
+		item.pack_start(checkentry, True, True, 0)
+		item.show()
+		self.incomplete.add(item)
+
+		# hide noneLabel
+		self.noneLabel.hide()
 
 	# update existing text for item
 	def updateJson(self, widget, entry, *data):
-		json = fileutils.getJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
-		if data[0]:
-			json['complete'][json['complete'].index(data[1])] = entry.get_text()
-		else:
-			json['incomplete'][json['incomplete'].index(data[1])] = entry.get_text()
-		fileutils.writeJson(json, fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
-		self.rebuildToDo()
+		json = fileutils.getJson(self.getToDoList())
+		json['incomplete'][json['incomplete'].index(data[0])] = entry.get_text()
+		fileutils.writeJson(json, self.getToDoList())
 
 	# clear completed tasks
 	def clear(self, widget, data=None):
-		json = fileutils.getJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
+		# update to-do list file
+		json = fileutils.getJson(self.getToDoList())
 		json['archive'] += json['complete']
 		json['complete'] = []
-		fileutils.writeJson(json, fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')
-		self.rebuildToDo()
+		fileutils.writeJson(json, self.getToDoList())
+
+		# update gui
+		# remove all items in complete
+		for x in range(0, len(self.complete.get_children())):
+			self.complete.remove(self.complete.get_children()[0])
+
+		# hide complete label
+		self.completeLabel.hide()
 
 	# initialize gui
 	def __init__(self):
 		# initialize window
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-		self.window.connect("delete_event", lambda w, e: gtk.main_quit())
+		self.window.connect("delete_event", self.quit)
 		self.window.set_border_width(10)
 		self.window.set_title("To-Do Lists")
 		self.window.set_position(gtk.WIN_POS_CENTER)
@@ -189,6 +287,9 @@ class ToDo:
 		# set project hub and blacklist
 		# only if configuration json does not exist
 		if not os.path.isfile('todo.json'):
+			# set mode
+			self.mode = 0
+
 			# change title to preferences
 			self.window.set_title("Preferences")
 
@@ -242,7 +343,7 @@ class ToDo:
 
 			# create cancel and OK buttons
 			self.cancel = gtk.Button("Cancel")
-			self.cancel.connect("clicked", self.cancelCall, None)
+			self.cancel.connect("clicked", lambda w, d: gtk.main_quit(), None)
 			self.OK = gtk.Button("OK")
 			self.OK.connect("clicked", self.okCall, None)
 
@@ -264,6 +365,9 @@ class ToDo:
 			self.vbox.show()
 			self.window.add(self.vbox)
 		else:
+			# set mode
+			self.mode = 1
+
 			# create vbox for entire display
 			self.vbox = gtk.VBox(False, 10)
 
@@ -284,6 +388,9 @@ class ToDo:
 				if not match:
 					self.projects.append(fileutils.getSubdirs(fileutils.parseJson('todo.json', 'projecthub'))[x])
 
+			# initialize current list used by program
+			self.currentList = fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json'
+
 			# add project buttons to project vbox
 			for x in range(0, len(self.projects)):
 				self.projselect.append_text(self.projects[x])
@@ -293,12 +400,25 @@ class ToDo:
 			self.createItem.connect("clicked", self.newItem, None)
 			self.removeItem = gtk.Button("Clear Complete")
 			self.removeItem.connect("clicked", self.clear, None)
-			if os.path.isfile(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json'):
+			if os.path.isfile(self.getToDoList()):
 				self.createItem.show()
 				self.removeItem.show()
 
 			# preventing errors by initializing variables before switchProject() is called
 			# it is called when it is connected to the dropdown
+			# or at least checked
+
+			# initialize incomplete item list
+			self.incomplete = gtk.VBox(False, 10)
+
+			# initialize complete item list
+			self.complete = gtk.VBox(False, 10)
+
+			# initialize none label
+			self.noneLabel = gtk.Label("No items in To-Do List!")
+
+			# initialize complete label
+			self.completeLabel = gtk.Label("<b>Complete</b>")
 
 			# add scrolled window for check list
 			self.scroll = gtk.ScrolledWindow()
@@ -306,7 +426,7 @@ class ToDo:
 			self.scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 
 			# create not found label
-			self.notFound = gtk.Label("No To-Do list found in\n<i>" + fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json' + "</i>!")
+			self.notFound = gtk.Label("No To-Do list found in\n<i>" + self.getToDoList() + "</i>!")
 			self.notFound.set_use_markup(gtk.TRUE)
 
 			# create a button to create a to-do list
@@ -342,52 +462,73 @@ class ToDo:
 
 			# display to-do list for selected item
 			# get lists of items
-			if os.path.isfile(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json'):
-				incomplete = fileutils.parseJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json', 'incomplete')
-				done = fileutils.parseJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json', 'complete')
+			if os.path.isfile(self.getToDoList()):
+				incomplete = fileutils.parseJson(self.getToDoList(), 'incomplete')
+				done = fileutils.parseJson(self.getToDoList(), 'complete')
 
 			# create vbox for scroll box
 			# this vbox will hold all the components you can scroll through
 			self.scrollbox = gtk.VBox(False, 10)
 
 			# add label
-			incompleteLabel = gtk.Label("<b>Incomplete</b>")
-			incompleteLabel.set_use_markup(gtk.TRUE)
-			incompleteLabel.show()
-			self.scrollbox.add(incompleteLabel)
+			self.incompleteLabel = gtk.Label("<b>Incomplete</b>")
+			self.incompleteLabel.set_use_markup(gtk.TRUE)
+			self.incompleteLabel.show()
+			self.scrollbox.add(self.incompleteLabel)
 
-			if os.path.isfile(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json'):
+			# add none label
+			self.noneLabel.hide()
+			self.scrollbox.add(self.noneLabel)
+
+			# make vbox to hold incomplete items
+			self.incomplete.show()
+			self.scrollbox.add(self.incomplete)
+
+			# add label
+			self.completeLabel.set_use_markup(gtk.TRUE)
+			self.completeLabel.show()
+			self.scrollbox.add(self.completeLabel)
+
+			# make vbox to hold complete items
+			self.complete.show()
+			self.scrollbox.add(self.complete)
+
+			if os.path.isfile(self.getToDoList()):
 				# create incomplete check boxes
 				for x in range(0, len(incomplete)):
 					item = gtk.HBox(False, 10)
+
+					# declare items
 					check = gtk.CheckButton(None)
-					check.connect("toggled", self.finished, incomplete[x])
+					checkentry = gtk.Entry(0)
+
+					# adjust items
+					check.connect("toggled", self.finished, incomplete[x], checkentry, item)
 					check.show()
 					item.pack_start(check, False, False, 0)
-					checkentry = gtk.Entry(0)
 					checkentry.select_region(0, len(checkentry.get_text()))
 					checkentry.set_text(incomplete[x])
-					checkentry.connect("activate", self.updateJson, checkentry, False, incomplete[x])
+					checkentry.connect("activate", self.updateJson, checkentry, incomplete[x])
 					checkentry.show()
 					item.pack_start(checkentry, True, True, 0)
 					item.show()
-					self.scrollbox.add(item)
+					self.incomplete.add(item)
+
+				# show noneLabel
+				if len(self.incomplete.get_children()) == 0:
+					self.noneLabel.show()
 			
 				# only show the complete label and items if there are complete items
-				if len(fileutils.getJson(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json')['complete']) > 0:
-					# add label
-					completeLabel = gtk.Label("<b>Complete</b>")
-					completeLabel.set_use_markup(gtk.TRUE)
-					completeLabel.show()
-					self.scrollbox.add(completeLabel)
-
+				if len(fileutils.getJson(self.getToDoList())['complete']) > 0:
 					# create complete check boxes
 					for x in range(0, len(done)):
 						check = gtk.CheckButton(done[x])
 						check.set_active(gtk.TRUE)
-						check.connect("toggled", self.toggleChecked, None)
+						check.connect("toggled", lambda w, d: w.set_active(gtk.TRUE), None)
 						check.show()
-						self.scrollbox.add(check)
+						self.complete.add(check)
+				else:
+					self.completeLabel.hide()
 
 			# add scrollBox to scroll window
 			# then show scrolled window
@@ -402,13 +543,14 @@ class ToDo:
 			# add notFound to todoBox
 			self.notFound.show()
 			self.todoBox.add(self.notFound)
+			self.windowX = self.notFound.size_request()[0]
 			
 			# add button to create to-do list
 			self.createButton.show()
 			self.todoBox.add(self.createButton)
 
 			# hide necessary components
-			if not os.path.isfile(fileutils.parseJson('todo.json', 'projecthub') + os.sep + self.projects[self.selected] + os.sep + 'todo.json'):
+			if not os.path.isfile(self.getToDoList()):
 				self.scroll.hide()
 			else:
 				self.notFound.hide()
@@ -418,10 +560,13 @@ class ToDo:
 			self.todoBox.show()
 			self.vbox.add(self.todoBox)
 
-			# add hbox to window
+			# add vbox to window
 			self.vbox.show()
 			self.window.add(self.vbox)
 		
+		# set a size request
+		self.window.set_size_request(self.windowX, -1)
+
 		# show window on screen
 		self.window.show()
 
