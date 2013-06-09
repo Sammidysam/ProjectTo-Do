@@ -27,7 +27,7 @@ Icon=todo" > /home/$USER/.local/share/applications/todo.desktop
 	chmod +x /home/$USER/.local/share/applications/todo.desktop
 }
 
-if [ $1 == "uninstall" ];
+if [ "$1" == "uninstall" ];
 then
 	uninstall
 else
