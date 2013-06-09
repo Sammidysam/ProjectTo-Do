@@ -24,6 +24,7 @@ Exec=python /home/$USER/.todo/todo.py
 Terminal=false
 Categories=Utility;
 Icon=todo" > /home/$USER/.local/share/applications/todo.desktop
+	chmod +x /home/$USER/.local/share/applications/todo.desktop
 }
 
 if [ $1 == "uninstall" ];
