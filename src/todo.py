@@ -215,6 +215,7 @@ class ToDo:
 			# create blacklist entry box, label, and checkbox
 			self.blackbox = gtk.HBox(False, 10)
 			self.blackLabel = gtk.Label("Blacklist:")
+			self.blackLabel.set_size_request(self.labelLength[0], self.labelLength[1])
 			self.blackentry = gtk.Entry(0)
 			self.blackentry.select_region(0, len(self.blackentry.get_text()))
 			defaultBlacklist = fileutils.parseJson(fileutils.defaultJson, 'blacklist')
