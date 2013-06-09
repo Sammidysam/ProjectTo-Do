@@ -188,6 +188,12 @@ class ToDo:
 		for x in range(0, len(self.complete.get_children())):
 			self.complete.remove(self.complete.get_children()[0])
 
+		# show no items in to-do list
+		self.noneLabel.show()
+
+		# hide complete items label
+		self.completeLabel.hide()
+
 		# show gui
 		self.scroll.show()
 
