@@ -19,18 +19,20 @@ def getHome():
 
 # gets the location that the program files will be stored
 def getInstallLocation():
-	return getHome() + os.sep + '.todo'
+	return getHome() + os.sep + ".todo"
 
 # writes pretty JSON with UTF-8 encoding
 def writeJson(data, file):
-	with io.open(file, 'w', encoding='utf-8') as f:
+	with io.open(file, 'w', encoding="utf-8") as f:
 		f.write(unicode(json.dumps(data, ensure_ascii=False, sort_keys=True, indent=4)))
 
 # the default Project To-Do JSON configuration
 # projecthub is where all the projects are
 # blacklist is an array of folders you don't want included
-defaultJson = {'projecthub': getHome() + os.sep + 'Documents' + os.sep + 'Workspace',
-				'blacklist': ['.metadata']}
+defaultJson = {"projecthub": getHome() + os.sep + "Documents" + os.sep + "Workspace",
+				"blacklist": [".metadata"],
+				"sizeX": "457",
+				"sizeY": "271"}
 
 # parses some json text that is an argument
 # identifier tells what item you want to retrieve
@@ -46,14 +48,10 @@ def parseJson(data, identifier):
 	else:
 		return data[identifier]
 
-# future method for creating .desktop file to launch program
-def createDesktopFile():
-	print "Not yet implemented!"
-
 # returns a string representation of a file's data
 def getFile(name):
 	if not os.path.isfile(name):
-		sys.stderr.write('File ' + name + ' cannot be read!\n')
+		sys.stderr.write("File " + name + " cannot be read!\n")
 	else:
 		file = io.open(name)
 		string = file.read()
@@ -63,6 +61,6 @@ def getFile(name):
 # returns a json loads of the file
 def getJson(name):
 	if not os.path.isfile(name):
-		sys.stderr.write('File ' + name + ' cannot be read!\n')
+		sys.stderr.write("File " + name + " cannot be read!\n")
 	else:
 		return json.loads(getFile(name))
