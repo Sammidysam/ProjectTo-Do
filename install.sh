@@ -17,10 +17,16 @@ uninstall ()
 
 install ()
 {
+	# make necessary directories if needed
 	mkdir -p /home/$USER/.todo
 	mkdir -p /home/$USER/.local/share/applications
 	mkdir -p /home/$USER/.local/share/icons
 	cp src/*.py /home/$USER/.todo
+	
+	# create launch script
+	echo "cd /home/$USER/.todo
+python todo.py" > /home/$USER/.todo/launch.sh
+	chmod +x /home/$USER/.todo/launch.sh
 
 	cp img/icon.svg /home/$USER/.local/share/icons/todo.svg
 	
@@ -28,7 +34,7 @@ install ()
 Type=Application
 Encoding=UTF-8
 Name=To-Do Lists
-Exec=python /home/$USER/.todo/todo.py
+Exec=/home/$USER/.todo/launch.sh
 Terminal=false
 Categories=Utility;
 Icon=todo" > /home/$USER/.local/share/applications/todo.desktop
