@@ -20,9 +20,11 @@ install ()
 {
 	# make necessary directories if needed
 	mkdir -p /home/$USER/.todo
+	mkdir -p /home/$USER/.todo/img
 	mkdir -p /home/$USER/.local/share/applications
 	mkdir -p /home/$USER/.local/share/icons
 	cp src/*.py /home/$USER/.todo
+	cp img/*.svg /home/$USER/.todo/img
 	
 	# create launch script
 	echo "cd /home/$USER/.todo

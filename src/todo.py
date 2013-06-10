@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 # for running via Sublime
-SUBLIME = False
-# turn to False for release
-if SUBLIME:
-	from os import chdir
-	chdir('..')
+# SUBLIME = True
+# comment out for release
+# if SUBLIME:
+# 	from os import chdir
+# 	chdir('..')
 
 # for graphics
 import pygtk
@@ -287,8 +287,10 @@ class ToDo:
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 		self.window.connect("delete_event", self.quit)
 		self.window.set_border_width(10)
+		self.window.set_wmclass("To-Do Lists", "To-Do Lists")
 		self.window.set_title("To-Do Lists")
 		self.window.set_position(gtk.WIN_POS_CENTER)
+		self.window.set_icon_from_file("img" + os.sep + "icon.svg")
 
 		# set project hub and blacklist
 		# only if configuration json does not exist
