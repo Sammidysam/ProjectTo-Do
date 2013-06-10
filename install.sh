@@ -2,6 +2,7 @@
 
 uninstall ()
 {
+	# remove installed files
 	rm -rf /home/$USER/.todo
 	rm /home/$USER/.local/share/applications/todo.desktop
 	rm /home/$USER/.local/share/icons/todo.svg
@@ -28,8 +29,10 @@ install ()
 python todo.py" > /home/$USER/.todo/launch.sh
 	chmod +x /home/$USER/.todo/launch.sh
 
+	# copy icon
 	cp img/icon.svg /home/$USER/.local/share/icons/todo.svg
 	
+	# create launcher
 	echo "[Desktop Entry]
 Type=Application
 Encoding=UTF-8
