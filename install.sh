@@ -5,6 +5,14 @@ uninstall ()
 	rm -rf /home/$USER/.todo
 	rm /home/$USER/.local/share/applications/todo.desktop
 	rm /home/$USER/.local/share/icons/todo.svg
+	
+	# check for errors
+	if [ $? == 0 ];
+	then
+		echo "Uninstalled successfully!"
+	else
+		echo "Error in uninstallation!"
+	fi
 }
 
 install ()
@@ -25,6 +33,14 @@ Terminal=false
 Categories=Utility;
 Icon=todo" > /home/$USER/.local/share/applications/todo.desktop
 	chmod +x /home/$USER/.local/share/applications/todo.desktop
+	
+	# check for errors
+	if [ $? == 0 ];
+	then
+		echo "Installed successfully!"
+	else
+		echo "Error in installation!"
+	fi
 }
 
 if [ "$1" == "uninstall" ];

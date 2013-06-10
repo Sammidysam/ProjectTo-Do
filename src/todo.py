@@ -570,8 +570,8 @@ class ToDo:
 			self.vbox.show()
 			self.window.add(self.vbox)
 		
-		# set a size request
-		self.window.set_size_request(self.windowX, -1)
+			# set a size request
+			self.window.set_size_request(self.windowX, -1)
 
 		# show window on screen
 		self.window.show()
