@@ -56,7 +56,7 @@ class ToDo:
 				"blacklist": blacklist,
 				"sizeX": sizeX,
 				"sizeY": sizeY}
-		fileutils.writeJson(json, "todo.json")
+		fileutils.writeJson(json, "conf.json")
 
 		# destroy current window and make new one
 		self.window.destroy()
@@ -86,7 +86,7 @@ class ToDo:
 			+ "  You can add a new item by adding a comma then the name of your new item, for example, changing it to \".metadata,.git\" to add \".git\" to the blacklist."
 			+ "\n\n<b>Window Settings</b>\nThe two variables are pretty self-explanatory.  The two defaults are the values that I think will be most convenient."
 			+ "  Setting a value to \"0\" will result in the window not being resized at all; it will be the size that all of its components require"
-			+ "\n\nYou can further edit the settings in <i>" + fileutils.getInstallLocation() + os.sep + "todo.json" + "</i>.")
+			+ "\n\nYou can further edit the settings in <i>" + fileutils.getInstallLocation() + os.sep + "conf.json" + "</i>.")
 		self.helpLabel.set_line_wrap(True)
 		self.helpLabel.set_use_markup(gtk.TRUE)
 		self.helpvbox.add(self.helpLabel)
@@ -107,8 +107,8 @@ class ToDo:
 			self.selected = combobox.get_active()
 		else:
 			self.selected = combobox
-		if os.path.isfile("todo.json"):
-			self.currentList = fileutils.parseJson("todo.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + "todo.json"
+		if os.path.isfile("conf.json"):
+			self.currentList = fileutils.parseJson("conf.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + "todo.json"
 			if isinstance(combobox, gtk.ComboBox):
 				self.window.set_title("To-Do Lists - " + self.projects[combobox.get_active()])
 			else:
@@ -150,7 +150,7 @@ class ToDo:
 				checkentry.show()
 				item.pack_start(checkentry, True, True, 0)
 				item.show()
-				self.incomplete.add(item)
+				self.incomplete.pack_start(item, False, False, 0)
 
 			# show that there are no to-do list items if there are none
 			# hide otherwise
@@ -164,7 +164,7 @@ class ToDo:
 				check.set_active(gtk.TRUE)
 				check.connect("toggled", lambda w, d: w.set_active(gtk.TRUE), None)
 				check.show()
-				self.complete.add(check)
+				self.complete.pack_start(check, False, False, 0)
 
 			# hide label if there are no complete items
 			# show it otherwise
@@ -310,30 +310,29 @@ class ToDo:
 
 		# set mode
 		# ternary operator used
-		self.mode = 0 if not os.path.isfile("todo.json") else 1
+		self.mode = 0 if not os.path.isfile("conf.json") else 1
 
 		# set project list, current list being used by program
 		self.projects = []
 		self.currentList = ""
 		if self.mode == 1:
 			# create projects list
-			for x in range(0, len(fileutils.getSubdirs(fileutils.parseJson("todo.json", "projecthub")))):
+			for x in range(0, len(fileutils.getSubdirs(fileutils.parseJson("conf.json", "projecthub")))):
 				match = False
-				for y in range(0, len(fileutils.parseJson("todo.json", "blacklist"))):
-					if fileutils.getSubdirs(fileutils.parseJson("todo.json", "projecthub"))[x] == fileutils.parseJson("todo.json", "blacklist")[y]:
+				for y in range(0, len(fileutils.parseJson("conf.json", "blacklist"))):
+					if fileutils.getSubdirs(fileutils.parseJson("conf.json", "projecthub"))[x] == fileutils.parseJson("conf.json", "blacklist")[y]:
 						match = True
 				if not match:
-					self.projects.append(fileutils.getSubdirs(fileutils.parseJson("todo.json", "projecthub"))[x])
+					self.projects.append(fileutils.getSubdirs(fileutils.parseJson("conf.json", "projecthub"))[x])
 
 			# create current list
-			self.currentList = fileutils.parseJson("todo.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + "todo.json"
+			self.currentList = fileutils.parseJson("conf.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + "todo.json"
 
 		# define all component variables
 		# vbox for whole display
 		self.vbox = gtk.VBox(False, 10)
 
 		# preferences components
-		self.topwhite = gtk.Label(None)
 		self.programLabel = gtk.Label("<b>Program Settings</b>")
 		self.hubbox = gtk.HBox(False, 10)
 		self.projectLabel = gtk.Label("Project Hub:")
@@ -375,9 +374,6 @@ class ToDo:
 		self.window.add(self.vbox)
 
 		# preference components initialization
-
-		# whitespace
-		self.vbox.add(self.topwhite)
 
 		# label of program settings
 		self.programLabel.set_use_markup(gtk.TRUE)
@@ -482,25 +478,24 @@ class ToDo:
 
 		# incomplete label
 		self.incompleteLabel.set_use_markup(gtk.TRUE)
-		self.scrollbox.add(self.incompleteLabel)
+		self.scrollbox.pack_start(self.incompleteLabel, False, False, 0)
 
 		# none label
-		self.scrollbox.add(self.noneLabel)
+		self.scrollbox.pack_start(self.noneLabel, False, False, 0)
 
 		# incomplete list
-		self.scrollbox.add(self.incomplete)
+		self.scrollbox.pack_start(self.incomplete, False, False, 0)
 
 		# complete label
 		self.completeLabel.set_use_markup(gtk.TRUE)
-		self.scrollbox.add(self.completeLabel)
+		self.scrollbox.pack_start(self.completeLabel, False, False, 0)
 
 		# complete list
-		self.scrollbox.add(self.complete)
+		self.scrollbox.pack_start(self.complete, False, False, 0)
 
 		# do stuff only for specific mode
 		if self.mode == 0:
 			self.window.set_title("Preferences")
-			self.topwhite.show()
 			self.programLabel.show()
 			self.hubbox.show()
 			self.projectLabel.show()
@@ -522,8 +517,8 @@ class ToDo:
 			self.ok.show()
 		else:
 			# set size request
-			sizeX = int(fileutils.parseJson("todo.json", "sizeX"))
-			sizeY = int(fileutils.parseJson("todo.json", "sizeY"))
+			sizeX = int(fileutils.parseJson("conf.json", "sizeX"))
+			sizeY = int(fileutils.parseJson("conf.json", "sizeY"))
 			if sizeX == 0:
 				sizeX = -1
 			if sizeY == 0:
