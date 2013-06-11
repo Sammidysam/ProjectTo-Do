@@ -111,7 +111,7 @@ class ToDo:
 		else:
 			self.selected = combobox
 		if os.path.isfile("conf.json"):
-			self.currentList = fileutils.parseJson("conf.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + "todo.json"
+			self.currentList = fileutils.parseJson("conf.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + ".todo.json"
 			if isinstance(combobox, gtk.ComboBox):
 				self.window.set_title("To-Do Lists - " + self.projects[combobox.get_active()])
 			else:
@@ -335,7 +335,7 @@ class ToDo:
 					self.projects.append(fileutils.getSubdirs(fileutils.parseJson("conf.json", "projecthub"))[x])
 
 			# create current list
-			self.currentList = fileutils.parseJson("conf.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + "todo.json"
+			self.currentList = fileutils.parseJson("conf.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + ".todo.json"
 
 		# define all component variables
 		# vbox for whole display
