@@ -25,11 +25,6 @@ install ()
 	mkdir -p /home/$USER/.local/share/icons
 	cp src/*.py /home/$USER/.todo
 	cp img/*.svg /home/$USER/.todo/img
-	
-	# create launch script
-	echo "cd /home/$USER/.todo
-python todo.py" > /home/$USER/.todo/launch.sh
-	chmod +x /home/$USER/.todo/launch.sh
 
 	# copy icon
 	cp img/icon.svg /home/$USER/.local/share/icons/todo.svg
@@ -39,7 +34,7 @@ python todo.py" > /home/$USER/.todo/launch.sh
 Type=Application
 Encoding=UTF-8
 Name=To-Do Lists
-Exec=/home/$USER/.todo/launch.sh
+Exec=python /home/$USER/.todo/todo.py
 Terminal=false
 Categories=Utility;
 Icon=todo" > /home/$USER/.local/share/applications/todo.desktop

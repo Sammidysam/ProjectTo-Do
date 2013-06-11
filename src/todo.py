@@ -9,6 +9,10 @@ import gtk
 import fileutils
 import os
 
+# check if in right directory
+if os.getcwd() == fileutils.getHome() and os.path.isdir(".todo"):
+	os.chdir(".todo")
+
 class ToDo:
 	# default selected to-do list
 	selected = 0
@@ -22,12 +26,11 @@ class ToDo:
 		# then, run the activate method on the entry boxes
 		# this will update the JSON
 		# so that your changes are saved when closing
-		if self.mode != 0:
-			if os.path.isfile(self.getToDoList()):
-				for x in range(0, len(self.incomplete.get_children())):
-					for y in range(0, len(self.incomplete.get_children()[x].get_children())):
-						if isinstance(self.incomplete.get_children()[x].get_children()[y], gtk.Entry):
-							self.incomplete.get_children()[x].get_children()[y].activate()
+		if self.mode != 0 and os.path.isfile(self.getToDoList()):
+			for x in range(0, len(self.incomplete.get_children())):
+				for y in range(0, len(self.incomplete.get_children()[x].get_children())):
+					if isinstance(self.incomplete.get_children()[x].get_children()[y], gtk.Entry):
+						self.incomplete.get_children()[x].get_children()[y].activate()
 
 		# quit the program
 		gtk.main_quit()
