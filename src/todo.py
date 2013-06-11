@@ -84,7 +84,7 @@ class ToDo:
 		# create help label
 		self.helpLabel.set_text("The currently shown items in the entry boxes are the default values of the variables."
 			+ "  Feel free to change them.\n\n<b>Program Settings</b>\nThe project hub is the location where all of your projects are."
-			+ "  You must enter a path for it, such as the example in the box.\n\nThe blacklist is a list of folders that you do not want ProjectTo-Do to generate a to-do list for."
+			+ "  You must enter a path for it, such as the example in the box.\n\nThe blacklist is a list of folders that you do not want ProjectTo-Do to manage a to-do list for."
 			+ "  In the blacklist, each folder name is separated by one comma [,].  For example, in the default value of blacklist there is one item:  \".metadata\"."
 			+ "  You can add a new item by adding a comma then the name of your new item, for example, changing it to \".metadata,.git\" to add \".git\" to the blacklist."
 			+ "\n\n<b>Window Settings</b>\nThe two variables are pretty self-explanatory.  The two defaults are the values that I think will be most convenient."
@@ -183,6 +183,12 @@ class ToDo:
 			self.addItem.hide()
 			self.clearComplete.hide()
 			self.scroll.hide()
+
+			# adjust notFound
+			self.notFound.set_text("No To-Do list found in\n<i>" + self.getToDoList() + "</i>!")
+			self.notFound.set_use_markup(gtk.TRUE)
+
+			# finish
 			self.notFound.show()
 			self.createButton.show()
 
@@ -397,11 +403,7 @@ class ToDo:
 		# label and entry for blacklist
 		self.blackLabel.set_size_request(self.labelSize[0], self.labelSize[1])
 		self.blackbox.add(self.blackLabel)
-		defaultBlacklist = fileutils.parseJson(fileutils.defaultJson, "blacklist")
-		combined = defaultBlacklist[0]
-		for x in range(1, len(defaultBlacklist)):
-			combined += ',' + defaultBlacklist[x]
-		self.blackentry.set_text(combined)
+		self.blackentry.set_text(fileutils.parseJson(fileutils.defaultJson, "blacklist")[0])
 		self.blackbox.add(self.blackentry)
 		
 		# label of window settings
@@ -532,20 +534,22 @@ class ToDo:
 			self.viewButtons.show()
 			self.projselect.show()
 			if os.path.isfile(self.getToDoList()):
-				self.addItem.show()
-				self.clearComplete.show()
-				self.scrollbox.show()
-				self.incompleteLabel.show()
-				self.incomplete.show()
-				self.complete.show()
 				self.switchProject(self.selected)
 			else:
 				self.notFound.show()
 				self.createButton.show()
 
+		# show no matter what
+		self.scrollbox.show()
+		self.incompleteLabel.show()
+		self.incomplete.show()
+		self.complete.show()
+
 		# add vbox to window, display window
 		self.vbox.show()
 		self.window.show()
+
+		print "Initialized successfully!"
 
 	# start gtk main method
 	def main(self):
