@@ -50,3 +50,7 @@ These screenshots were taken at the point of [this commit](https://github.com/Sa
 ### How to Contribute
 
 This project is nearly done--likely from here on out only very small updates will come by.  If you would like to add features or layout changes to ProjectTo-Do, you can do so by forking the repository and adding a pull request with your changes.  I will then review them and try them out.  If they work nicely I will merge them.
+
+## Reporting Bugs or Suggesting Features
+
+If you have encountered a bug or want to suggest a feature, head over to the [issues page](https://github.com/Sammidysam/ProjectTo-Do/issues?state=open) and create a new issue.  If it is a bug, label it with the tag `bug` and if it is a suggestion for improvement label it with the tag `enhancement`.  Then just write your message and I will review it and give feedback.
