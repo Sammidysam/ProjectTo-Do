@@ -20,6 +20,13 @@ class ToDo:
 	# current mode: preferences (0) or gui (1)
 	mode = 0
 
+	# saves the contents of all entry boxes in incomplete
+	def saveEntries(self):
+		for x in range(0, len(self.incomplete.get_children())):
+			for y in range(0, len(self.incomplete.get_children()[x].get_children())):
+				if isinstance(self.incomplete.get_children()[x].get_children()[y], gtk.Entry):
+					self.incomplete.get_children()[x].get_children()[y].activate()
+
 	# called when window quits
 	def quit(self, widget, event, data=None):
 		# loop through incomplete to-do items
@@ -27,10 +34,7 @@ class ToDo:
 		# this will update the JSON
 		# so that your changes are saved when closing
 		if self.mode != 0 and os.path.isfile(self.getToDoList()):
-			for x in range(0, len(self.incomplete.get_children())):
-				for y in range(0, len(self.incomplete.get_children()[x].get_children())):
-					if isinstance(self.incomplete.get_children()[x].get_children()[y], gtk.Entry):
-						self.incomplete.get_children()[x].get_children()[y].activate()
+			self.saveEntries()
 
 		# quit the program
 		gtk.main_quit()
@@ -111,11 +115,15 @@ class ToDo:
 		else:
 			self.selected = combobox
 		if os.path.isfile("conf.json"):
+			# save entry boxes if necessary
+			if os.path.isfile(self.getToDoList()):
+				self.saveEntries()
 			self.currentList = fileutils.parseJson("conf.json", "projecthub") + os.sep + self.projects[self.selected] + os.sep + ".todo.json"
 			if isinstance(combobox, gtk.ComboBox):
 				self.window.set_title("To-Do Lists - " + self.projects[combobox.get_active()])
 			else:
 				self.window.set_title("To-Do Lists - " + self.projects[combobox])
+
 		if os.path.isfile(self.getToDoList()):
 			# show and hide necessary components
 			self.addItem.show()
