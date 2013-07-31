@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/python
 
 # for graphics
 import pygtk
@@ -8,6 +8,13 @@ import gtk
 # for manipulating files
 import fileutils
 import os
+
+# for parsing command-line arguments
+import sys
+
+# for text mode
+import text
+import curses
 
 # check if in right directory
 if os.getcwd() == fileutils.getHome() and os.path.isdir(".todo"):
@@ -564,6 +571,15 @@ class ToDo:
 		gtk.main()
 
 if __name__ == "__main__":
+	# parse command-line args
+	if "-t" in sys.argv or "--text-mode" in sys.argv:
+		textMode = True
+	else:
+		textMode = False
+	
 	# start program
-	todo = ToDo()
-	todo.main()
+	if textMode:
+		curses.wrapper(text.main)
+	else:
+		todo = ToDo()
+		todo.main()
