@@ -54,3 +54,7 @@ This project is nearly done--likely from here on out only very small updates wil
 ## Reporting Bugs or Suggesting Features
 
 If you have encountered a bug or want to suggest a feature, head over to the [issues page](https://github.com/Sammidysam/ProjectTo-Do/issues?state=open) and create a new issue.  If it is a bug, label it with the tag `bug` and if it is a suggestion for improvement label it with the tag `enhancement`.  Then just write your message and I will review it and give feedback.
+
+## License
+
+This program is licensed under the GNU General Public License version 3. To see the license, visit the file [LICENSE](LICENSE).
